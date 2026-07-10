@@ -11,115 +11,122 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="అక్షర AI">
 
-    <!-- Web App Manifest (సింగిల్ ఫైల్ లోనే ఇన్-లైన్ గా రాసాము) -->
+    <!-- Web App Manifest -->
     <link rel="manifest" href='data:application/manifest+json,{"name":"అక్షర AI అసిస్టెంట్","short_name":"అక్షర AI","start_url":".","display":"standalone","background_color":"#020617","theme_color":"#020617","icons":[{"src":"https://flaticon.com","sizes":"512x512","type":"image/png","purpose":"any maskable"}]}' />
-
-    <!-- Tailwind CSS & FontAwesome Icons -->
-    <script src="https://tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cloudflare.com">
     
+    <!-- ఇన్-బిల్ట్ CSS (ఇంటర్నెట్ అవసరం లేదు) -->
     <style>
-        .ai-glow { box-shadow: 0 0 30px rgba(59, 130, 246, 0.3); }
-        @keyframes wave {
-            0%, 100% { transform: scaleY(0.3); }
-            50% { transform: scaleY(1); }
-        }
-        .wave-bar { animation: wave 1.2s ease-in-out infinite; }
-        .wave-bar:nth-child(2) { animation-delay: 0.2s; }
-        .wave-bar:nth-child(3) { animation-delay: 0.4s; }
-        .wave-bar:nth-child(4) { animation-delay: 0.6s; }
-        .wave-bar:nth-child(5) { animation-delay: 0.8s; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+        body { background-color: #020617; color: white; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px; -webkit-font-smoothing: antialiased; }
+        
+        .ai-container { max-width: 440px; w-index: 100%; width: 100%; background-color: #0f172a; border: 1px solid #1e293b; border-radius: 24px; box-shadow: 0 0 30px rgba(59, 130, 246, 0.2); display: flex; flex-direction: column; h-index: 100vh; height: 650px; overflow: hidden; position: relative; }
+        @media (max-width: 768px) { .ai-container { position: fixed; inset: 0; height: 100dvh; max-width: 100%; border-radius: 0; } }
+        
+        .header { background-color: rgba(30, 41, 59, 0.5); padding: 16px; border-b: 1px solid #1e293b; display: flex; align-items: center; justify-content: space-between; backdrop-filter: blur(8px); }
+        .profile-area { display: flex; align-items: center; gap: 12px; }
+        .avatar { width: 48px; height: 48px; background: linear-gradient(to top right, #2563eb, #6366f1); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .online-dot { position: absolute; bottom: 0; right: 0; width: 12px; height: 12px; background-color: #10b981; border: 2px solid #0f172a; border-radius: 50%; }
+        .title { font-size: 18px; font-weight: bold; letter-spacing: 0.5px; }
+        .status { font-size: 12px; color: #34d399; display: flex; align-items: center; gap: 4px; margin-top: 2px; }
+        
+        .chat-window { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; background: linear-gradient(to bottom, rgba(2,6,23,0.1), rgba(2,6,23,0.5)); padding-bottom: 100px; scroll-behavior: smooth; }
+        .chat-window::-webkit-scrollbar { display: none; }
+        
+        .msg-row { display: flex; gap: 8px; max-width: 85%; align-items: flex-start; }
+        .msg-row.user { margin-left: auto; flex-direction: row-reverse; }
+        .msg-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; font-weight: bold; }
+        .msg-avatar.ai { background-color: #2563eb; }
+        .msg-avatar.user { background-color: #4f46e5; }
+        
+        .msg-bubble { padding: 14px; border-radius: 16px; font-size: 14px; line-height: 1.6; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .msg-row.ai .msg-bubble { background-color: #1e293b; color: #f1f5f9; border-top-left-radius: 0; border: 1px solid rgba(255,255,255,0.05); }
+        .msg-row.user .msg-bubble { background-color: #2563eb; color: white; border-top-right-radius: 0; }
+        
+        .wave-container { display: none; justify-content: center; align-items: center; gap: 6px; padding: 12px; background-color: rgba(2, 6, 23, 0.8); border-top: 1px solid #1e293b; position: absolute; bottom: 84px; width: 100%; backdrop-filter: blur(8px); }
+        .wave-text { font-size: 12px; color: #60a5fa; font-weight: 500; margin-right: 8px; }
+        .wave-bar { width: 4px; height: 24px; background-color: #3b82f6; border-radius: 9999px; animation: wave 1.2s ease-in-out infinite; transform-origin: center; }
+        .wave-bar:nth-child(2) { background-color: #60a5fa; animation-delay: 0.2s; }
+        .wave-bar:nth-child(3) { background-color: #6366f1; animation-delay: 0.4s; }
+        .wave-bar:nth-child(4) { background-color: #60a5fa; animation-delay: 0.6s; }
+        .wave-bar:nth-child(5) { background-color: #3b82f6; animation-delay: 0.8s; }
+        @keyframes wave { 0%, 100% { transform: scaleY(0.3); } 50% { transform: scaleY(1); } }
+        
+        .controls { padding: 16px; background-color: rgba(15, 23, 42, 0.95); border-top: 1px solid #1e293b; backdrop-filter: blur(8px); position: absolute; bottom: 0; left: 0; right: 0; }
+        .speak-btn { background: linear-gradient(to right, #2563eb, #4f46e5); color: white; border: none; width: 100%; padding: 16px; border-radius: 16px; font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); }
+        .speak-btn:active { transform: scale(0.97); opacity: 0.9; }
+        .speak-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        .btn-action { background-color: rgba(30, 41, 59, 0.6); border: none; color: #94a3b8; padding: 10px; border-radius: 12px; cursor: pointer; font-size: 14px; transition: all 0.2s; }
+        .btn-action:hover { color: #f43f5e; background-color: rgba(244, 63, 94, 0.1); }
+        .install-btn { background-color: #2563eb; color: white; font-weight: bold; font-size: 12px; padding: 6px 12px; border-radius: 10px; display: none; margin-right: 8px; border: none; }
     </style>
 </head>
-<body class="bg-slate-950 text-white min-h-screen flex items-center justify-center p-4 antialiased selection:bg-blue-600/30">
+<body>
 
-    <!-- మెయిన్ AI కంటైనర్ -->
-    <div class="max-w-md w-full bg-slate-900 border border-slate-800/80 md:rounded-3xl ai-glow flex flex-col h-[100dvh] md:h-[650px] overflow-hidden shadow-2xl fixed inset-0 md:relative">
-        
-        <!-- హెడర్ (Top Bar) -->
-        <div class="bg-slate-800/50 p-4 border-b border-slate-800 flex items-center justify-between backdrop-blur-sm pt-6 md:pt-4">
-            <div class="flex items-center gap-3">
-                <div class="relative">
-                    <div class="w-12 h-12 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-full flex items-center justify-center text-2xl shadow-lg">👩‍💻</div>
-                    <span class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-slate-900 rounded-full"></span>
-                </div>
+    <div class="ai-container">
+        <!-- హెడర్ -->
+        <div class="header">
+            <div class="profile-area">
+                <div class="avatar">👩‍💻<span class="online-dot"></span></div>
                 <div>
-                    <h1 class="font-bold text-lg tracking-wide">అక్షర AI</h1>
-                    <p class="text-xs text-emerald-400 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>యాప్ ఆన్‌లైన్</p>
+                    <div class="title">అక్షర AI</div>
+                    <div class="status">యాప్ ఆన్‌లైన్</div>
                 </div>
             </div>
-            <div class="flex gap-2">
-                <!-- ఇన్‌స్టాల్ బటన్ (మొబైల్ లో మాత్రమే కనిపిస్తుంది) -->
-                <button id="pwaInstallBtn" class="hidden text-xs bg-blue-600 hover:bg-blue-500 px-3 py-1.5 rounded-xl font-bold transition-all items-center gap-1 shadow-md">
-                    <i class="fa-solid fa-download"></i> యాప్ ఇన్‌స్టాల్
-                </button>
-                <button onclick="clearChat()" class="text-slate-400 hover:text-rose-400 transition-colors p-2 rounded-xl bg-slate-800/40" title="చాట్ క్లియర్ చేయి">
-                    <i class="fa-solid fa-trash-can"></i>
-                </button>
+            <div style="display: flex; align-items: center;">
+                <button id="pwaInstallBtn" class="install-btn">ఇన్‌స్టాల్ యాప్</button>
+                <button onclick="clearChat()" class="btn-action" title="చాట్ క్లియర్ చేయి">🗑️</button>
             </div>
         </div>
 
         <!-- చాట్ విండో -->
-        <div id="chatWindow" class="flex-1 p-4 overflow-y-auto space-y-4 no-scrollbar bg-gradient-to-b from-slate-950/20 to-slate-950/60 pb-24">
-            <div class="flex gap-2 items-start max-w-[85%]">
-                <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-sm flex-shrink-0 shadow-md">AI</div>
-                <div class="bg-slate-800 p-3.5 rounded-2xl rounded-tl-none text-sm leading-relaxed border border-slate-700/50 shadow-sm">
-                    నమస్కారం! నేను అักษరని. మీ చదువులో సహాయం చేయడానికి సిద్ధంగా ఉన్నాను. "మాట్లాడు" బటన్ నొక్కి నాతో మాట్లాడవచ్చు!
+        <div id="chatWindow" class="chat-window">
+            <div class="msg-row ai">
+                <div class="msg-avatar ai">AI</div>
+                <div class="msg-bubble">
+                    నమస్కారం! నేను అక్షరని. మీ చదువులో సహాయం చేయడానికి సిద్ధంగా ఉన్నాను. కింద ఉన్న బటన్ నొక్కి నాతో మాట్లాడవచ్చు!
                 </div>
             </div>
         </div>
 
-        <!-- లైవ్ ఆడియో వేవ్ ఫీడ్‌బ్యాక్ -->
-        <div id="waveContainer" class="hidden justify-center items-center gap-1.5 py-4 bg-slate-950/80 border-t border-slate-900/60 absolute bottom-[88px] w-full backdrop-blur-md">
-            <span class="text-xs text-blue-400 font-medium mr-2" id="statusText">వింటున్నాను...</span>
-            <div class="w-1 h-6 bg-blue-500 rounded-full wave-bar origin-center"></div>
-            <div class="w-1 h-6 bg-blue-400 rounded-full wave-bar origin-center"></div>
-            <div class="w-1 h-6 bg-indigo-500 rounded-full wave-bar origin-center"></div>
-            <div class="w-1 h-6 bg-blue-400 rounded-full wave-bar origin-center"></div>
-            <div class="w-1 h-6 bg-blue-500 rounded-full wave-bar origin-center"></div>
+        <!-- ఆడియో వేవ్ -->
+        <div id="waveContainer" class="wave-container">
+            <span id="statusText" class="wave-text">వింటున్నాను...</span>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
         </div>
 
-        <!-- కంట్రోల్ ప్యానెల్ -->
-        <div class="p-4 bg-slate-900/90 border-t border-slate-800/80 backdrop-blur-md fixed bottom-0 left-0 right-0 md:absolute">
-            <button id="speakBtn" class="bg-gradient-to-r from-blue-600 to-indigo-600 active:from-blue-700 active:to-indigo-700 w-full py-4 rounded-2xl font-bold transition-all transform active:scale-[0.97] shadow-lg flex items-center justify-center gap-3 text-base tracking-wider">
-                <i class="fa-solid fa-microphone text-lg"></i>
-                <span>నాతో మాట్లాడు</span>
+        <!-- కంట్రోల్స్ -->
+        <div class="controls">
+            <button id="speakBtn" class="speak-btn">
+                <span>🎤 నాతో మాట్లాడు</span>
             </button>
         </div>
     </div>
 
-    <!-- జావాస్క్రిప్ట్ లాజిక్ -->
     <script>
-        // PWA ఇన్‌స్టాలేషన్ లాజిక్
+        // PWA ఇన్‌స్టాలేషన్
         let deferredPrompt;
         const pwaInstallBtn = document.getElementById('pwaInstallBtn');
 
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            pwaInstallBtn.style.display = 'flex'; // బటన్ చూపిస్తుంది
+            pwaInstallBtn.style.display = 'block';
         });
 
         pwaInstallBtn.addEventListener('click', async () => {
             if (deferredPrompt) {
                 deferredPrompt.prompt();
                 const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    console.log('User installed the PWA');
-                }
                 deferredPrompt = null;
                 pwaInstallBtn.style.display = 'none';
             }
         });
 
-        window.addEventListener('appinstalled', () => {
-            pwaInstallBtn.style.display = 'none';
-            alert("అక్షర AI యాప్ మీ మొబైల్ లో విజయవంతంగా ఇన్‌స్టాల్ చేయబడింది!");
-        });
-
-        // సింగిల్ ఫైల్ సర్వీస్ వర్కర్ రిజిస్ట్రేషన్ (PWA కి ఇది చాలా ముఖ్యం)
         if ('serviceWorker' in navigator) {
             const swCode = `
                 self.addEventListener('install', e => self.skipWaiting());
@@ -129,7 +136,7 @@
             navigator.serviceWorker.register(URL.createObjectURL(blob));
         }
 
-        // AI కోడ్ లాజిక్ (Speech & Interface)
+        // AI లాజిక్
         const speakBtn = document.getElementById('speakBtn');
         const chatWindow = document.getElementById('chatWindow');
         const waveContainer = document.getElementById('waveContainer');
@@ -147,7 +154,6 @@
             recognition.onstart = () => {
                 showWave("మీ మాటలు వింటున్నాను...");
                 speakBtn.disabled = true;
-                speakBtn.classList.add('opacity-50');
             };
 
             recognition.onerror = () => {
@@ -157,7 +163,7 @@
             };
 
             recognition.onresult = (event) => {
-                const userText = event.results[0][0].transcript;
+                const userText = event.results.transcript;
                 addMessage(userText, "user");
                 generateAIResponse(userText);
             };
@@ -165,29 +171,3 @@
 
         function generateAIResponse(query) {
             showWave("అక్షర ఆలోచిస్తోంది...");
-            window.speechSynthesis.cancel(); 
-
-            let reply = "మీరు చెప్పింది నాకు అర్థమైంది. మీ చదువుకు సంబంధించి దీనిపై నేను మీకు తప్పకుండా సహాయం చేస్తాను. ఇంకా వివరంగా అడగండి!";
-            
-            if (query.includes("ప్లాన్") || query.includes("టైం టేబుల్")) {
-                reply = "మీ చదువు కోసం 18 గంటల అద్భుతమైన ప్రిపరేషన్ ప్లాన్ సిద్ధంగా ఉంది! మనం ఇప్పుడే టైం టేబుల్ షెడ్యూల్ చేసుకుందామా?";
-            } else if (query.includes("పేరు") || query.includes("ఎవరు")) {
-                reply = "నేను అక్షరని, మీ పర్సనల్ ఎడ్యుకేషన్ AI అసిస్టెంట్‌ని!";
-            } else if (query.includes("థాంక్యూ") || query.includes("ధన్యవాదాలు")) {
-                reply = "మీకు సహాయపడినందుకు నాకు చాలా సంతోషంగా ఉంది! ఆల్ ది బెస్ట్!";
-            }
-
-            setTimeout(() => {
-                hideWave();
-                addMessage(reply, "ai");
-                speakText(reply);
-            }, 1000);
-        }
-
-        function speakText(text) {
-            showWave("అక్షర మాట్లాడుతోంది...");
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'te-IN';
-            utterance.rate = 0.95;
-
-            const voices = window.speechSynthesis.getVoices();
