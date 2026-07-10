@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="te">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>అక్షర - మీ అడ్వాన్స్‌డ్ AI అసిస్టెంట్</title>
+    
+    <!-- PWA మొబైల్ సెట్టింగ్స్ -->
+    <meta name="theme-color" content="#020617">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="అక్షర AI">
+
+    <!-- Web App Manifest (సింగిల్ ఫైల్ లోనే ఇన్-లైన్ గా రాసాము) -->
+    <link rel="manifest" href='data:application/manifest+json,{"name":"అక్షర AI అసిస్టెంట్","short_name":"అక్షర AI","start_url":".","display":"standalone","background_color":"#020617","theme_color":"#020617","icons":[{"src":"https://flaticon.com","sizes":"512x512","type":"image/png","purpose":"any maskable"}]}' />
+
+    <!-- Tailwind CSS & FontAwesome Icons -->
+    <script src="https://tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cloudflare.com">
+    
+    <style>
+        .ai-glow { box-shadow: 0 0 30px rgba(59, 130, 246, 0.3); }
+        @keyframes wave {
+            0%, 100% { transform: scaleY(0.3); }
+            50% { transform: scaleY(1); }
+        }
+        .wave-bar { animation: wave 1.2s ease-in-out infinite; }
+        .wave-bar:nth-child(2) { animation-delay: 0.2s; }
+        .wave-bar:nth-child(3) { animation-delay: 0.4s; }
+        .wave-bar:nth-child(4) { animation-delay: 0.6s; }
+        .wave-bar:nth-child(5) { animation-delay: 0.8s; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-slate-950 text-white min-h-screen flex items-center justify-center p-4 antialiased selection:bg-blue-600/30">
+
+    <!-- మెయిన్ AI కంటైనర్ -->
+    <div class="max-w-md w-full bg-slate-900 border border-slate-800/80 md:rounded-3xl ai-glow flex flex-col h-[100dvh] md:h-[650px] overflow-hidden shadow-2xl fixed inset-0 md:relative">
+        
+        <!-- హెడర్ (Top Bar) -->
+        <div class="bg-slate-800/50 p-4 border-b border-slate-800 flex items-center justify-between backdrop-blur-sm pt-6 md:pt-4">
+            <div class="flex items-center gap-3">
+                <div class="relative">
+                    <div class="w-12 h-12 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-full flex items-center justify-center text-2xl shadow-lg">👩‍💻</div>
+                    <span class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-slate-900 rounded-full"></span>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg tracking-wide">అక్షర AI</h1>
+                    <p class="text-xs text-emerald-400 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>యాప్ ఆన్‌లైన్</p>
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <!-- ఇన్‌స్టాల్ బటన్ (మొబైల్ లో మాత్రమే కనిపిస్తుంది) -->
+                <button id="pwaInstallBtn" class="hidden text-xs bg-blue-600 hover:bg-blue-500 px-3 py-1.5 rounded-xl font-bold transition-all items-center gap-1 shadow-md">
+                    <i class="fa-solid fa-download"></i> యాప్ ఇన్‌స్టాల్
+                </button>
+                <button onclick="clearChat()" class="text-slate-400 hover:text-rose-400 transition-colors p-2 rounded-xl bg-slate-800/40" title="చాట్ క్లియర్ చేయి">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- చాట్ విండో -->
+        <div id="chatWindow" class="flex-1 p-4 overflow-y-auto space-y-4 no-scrollbar bg-gradient-to-b from-slate-950/20 to-slate-950/60 pb-24">
+            <div class="flex gap-2 items-start max-w-[85%]">
+                <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-sm flex-shrink-0 shadow-md">AI</div>
+                <div class="bg-slate-800 p-3.5 rounded-2xl rounded-tl-none text-sm leading-relaxed border border-slate-700/50 shadow-sm">
+                    నమస్కారం! నేను అักษరని. మీ చదువులో సహాయం చేయడానికి సిద్ధంగా ఉన్నాను. "మాట్లాడు" బటన్ నొక్కి నాతో మాట్లాడవచ్చు!
+                </div>
+            </div>
+        </div>
+
+        <!-- లైవ్ ఆడియో వేవ్ ఫీడ్‌బ్యాక్ -->
+        <div id="waveContainer" class="hidden justify-center items-center gap-1.5 py-4 bg-slate-950/80 border-t border-slate-900/60 absolute bottom-[88px] w-full backdrop-blur-md">
+            <span class="text-xs text-blue-400 font-medium mr-2" id="statusText">వింటున్నాను...</span>
+            <div class="w-1 h-6 bg-blue-500 rounded-full wave-bar origin-center"></div>
+            <div class="w-1 h-6 bg-blue-400 rounded-full wave-bar origin-center"></div>
+            <div class="w-1 h-6 bg-indigo-500 rounded-full wave-bar origin-center"></div>
+            <div class="w-1 h-6 bg-blue-400 rounded-full wave-bar origin-center"></div>
+            <div class="w-1 h-6 bg-blue-500 rounded-full wave-bar origin-center"></div>
+        </div>
+
+        <!-- కంట్రోల్ ప్యానెల్ -->
+        <div class="p-4 bg-slate-900/90 border-t border-slate-800/80 backdrop-blur-md fixed bottom-0 left-0 right-0 md:absolute">
+            <button id="speakBtn" class="bg-gradient-to-r from-blue-600 to-indigo-600 active:from-blue-700 active:to-indigo-700 w-full py-4 rounded-2xl font-bold transition-all transform active:scale-[0.97] shadow-lg flex items-center justify-center gap-3 text-base tracking-wider">
+                <i class="fa-solid fa-microphone text-lg"></i>
+                <span>నాతో మాట్లాడు</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- జావాస్క్రిప్ట్ లాజిక్ -->
+    <script>
+        // PWA ఇన్‌స్టాలేషన్ లాజిక్
+        let deferredPrompt;
+        const pwaInstallBtn = document.getElementById('pwaInstallBtn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            pwaInstallBtn.style.display = 'flex'; // బటన్ చూపిస్తుంది
+        });
+
+        pwaInstallBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    console.log('User installed the PWA');
+                }
+                deferredPrompt = null;
+                pwaInstallBtn.style.display = 'none';
+            }
+        });
+
+        window.addEventListener('appinstalled', () => {
+            pwaInstallBtn.style.display = 'none';
+            alert("అక్షర AI యాప్ మీ మొబైల్ లో విజయవంతంగా ఇన్‌స్టాల్ చేయబడింది!");
+        });
+
+        // సింగిల్ ఫైల్ సర్వీస్ వర్కర్ రిజిస్ట్రేషన్ (PWA కి ఇది చాలా ముఖ్యం)
+        if ('serviceWorker' in navigator) {
+            const swCode = `
+                self.addEventListener('install', e => self.skipWaiting());
+                self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => caches.match(e.request))));
+            `;
+            const blob = new Blob([swCode], { type: 'application/javascript' });
+            navigator.serviceWorker.register(URL.createObjectURL(blob));
+        }
+
+        // AI కోడ్ లాజిక్ (Speech & Interface)
+        const speakBtn = document.getElementById('speakBtn');
+        const chatWindow = document.getElementById('chatWindow');
+        const waveContainer = document.getElementById('waveContainer');
+        const statusText = document.getElementById('statusText');
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition;
+
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.lang = 'te-IN';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            recognition.onstart = () => {
+                showWave("మీ మాటలు వింటున్నాను...");
+                speakBtn.disabled = true;
+                speakBtn.classList.add('opacity-50');
+            };
+
+            recognition.onerror = () => {
+                hideWave();
+                addMessage("క్షమించండి, వాయిస్ సరిగ్గా వినపడలేదు. మళ్ళీ ట్రై చేయండి.", "ai");
+                resetButton();
+            };
+
+            recognition.onresult = (event) => {
+                const userText = event.results[0][0].transcript;
+                addMessage(userText, "user");
+                generateAIResponse(userText);
+            };
+        }
+
+        function generateAIResponse(query) {
+            showWave("అక్షర ఆలోచిస్తోంది...");
+            window.speechSynthesis.cancel(); 
+
+            let reply = "మీరు చెప్పింది నాకు అర్థమైంది. మీ చదువుకు సంబంధించి దీనిపై నేను మీకు తప్పకుండా సహాయం చేస్తాను. ఇంకా వివరంగా అడగండి!";
+            
+            if (query.includes("ప్లాన్") || query.includes("టైం టేబుల్")) {
+                reply = "మీ చదువు కోసం 18 గంటల అద్భుతమైన ప్రిపరేషన్ ప్లాన్ సిద్ధంగా ఉంది! మనం ఇప్పుడే టైం టేబుల్ షెడ్యూల్ చేసుకుందామా?";
+            } else if (query.includes("పేరు") || query.includes("ఎవరు")) {
+                reply = "నేను అక్షరని, మీ పర్సనల్ ఎడ్యుకేషన్ AI అసిస్టెంట్‌ని!";
+            } else if (query.includes("థాంక్యూ") || query.includes("ధన్యవాదాలు")) {
+                reply = "మీకు సహాయపడినందుకు నాకు చాలా సంతోషంగా ఉంది! ఆల్ ది బెస్ట్!";
+            }
+
+            setTimeout(() => {
+                hideWave();
+                addMessage(reply, "ai");
+                speakText(reply);
+            }, 1000);
+        }
+
+        function speakText(text) {
+            showWave("అక్షర మాట్లాడుతోంది...");
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'te-IN';
+            utterance.rate = 0.95;
+
+            const voices = window.speechSynthesis.getVoices();
